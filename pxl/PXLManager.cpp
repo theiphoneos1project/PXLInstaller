@@ -1,39 +1,8 @@
 #include "PXLManager.hpp"
-#include <plist/plist.h>
+#include <plist/plist++.h>
 #include <iostream>
 #include <fstream>
 #include <unordered_map>
-
-static std::string PlistStringForKey(plist_t dictionary, const char *key) {
-    plist_t node = plist_dict_get_item(dictionary, key);
-    if (!node || plist_get_node_type(node) != PLIST_STRING) {
-        return "";
-    }
-
-    char *value = nullptr;
-    plist_get_string_val(node, &value);
-    
-    std::string result = value ? value : "";
-    free(value);
-    
-    return result;
-}
-
-static std::optional<std::vector<uint8_t>> SerializePlist(plist_t plist) {
-    char *buffer = nullptr;
-    uint32_t length = 0;
-    
-    plist_to_xml(plist, &buffer, &length);
-
-    if (!buffer) {
-        return std::nullopt;
-    }
-
-    std::vector<uint8_t> result((uint8_t *)buffer, (uint8_t *)buffer + length);
-    free(buffer);
-
-    return result;
-}
 
 PXLManager::PXLManager(AppleFileConduitSession& afcSession) : m_afcSession(afcSession), m_verboseLoggingEnabled(false) {}
 
@@ -91,19 +60,19 @@ std::optional<PXLManager::PXLApplication> PXLManager::ApplicationWithBundleIdent
     if (!fileContents.has_value()) {
         return std::nullopt;
     }
-    
-    plist_t dictionary = nullptr;
-    plist_from_memory((const char *)fileContents->data(), (uint32_t)fileContents->size(), &dictionary, nullptr);
-    if (!dictionary || plist_get_node_type(dictionary) != PLIST_DICT) {
-        plist_free(dictionary);
+
+    std::unique_ptr<PList::Structure> structure(PList::Structure::FromMemory((const char *)fileContents->data(), fileContents->size()));
+    if (!structure || structure->GetType() != PLIST_DICT) {
         return std::nullopt;
     }
 
+    PList::Dictionary dictionary(*(PList::Dictionary *)structure.get());
+
     PXLApplication application;
-    application.name = PlistStringForKey(dictionary, "RDPxlPackageName");
+    application.name = dictionary.Get<PList::String>("RDPxlPackageName")->GetValue();
     application.bundleIdentifier = bundleIdentifier;
-    application.version = PlistStringForKey(dictionary, "RDPxlPackageVersion");
-    application.description = PlistStringForKey(dictionary, "RDPxlPackageDesc");
+    application.version = dictionary.Get<PList::String>("RDPxlPackageVersion")->GetValue();
+    application.description = dictionary.Get<PList::String>("RDPxlPackageDesc")->GetValue();
     
     if (m_verboseLoggingEnabled) {
         std::cout << "[+] PXLManager::ApplicationWithBundleIdentifier(std::string_view) -- application.name: " << application.name << "\n";
@@ -181,28 +150,27 @@ bool PXLManager::RemoveApplication(const PXLApplication& application) const {
         }
     }
 
-    plist_t commandsDictionary = plist_new_dict();
-    plist_dict_set_item(commandsDictionary, "command", plist_new_string("remove"));
-    plist_dict_set_item(commandsDictionary, "package", plist_new_string(application.bundleIdentifier.c_str()));
+    PList::Dictionary commandsDictionary;
+    commandsDictionary.Set("command", PList::String("remove"));
+    commandsDictionary.Set("package", PList::String(application.bundleIdentifier.c_str()));
     
     if (m_verboseLoggingEnabled) {
         std::cout << "[+] PXLManager::RemoveApplication(void) -- Removing application with bundle identifier " << application.bundleIdentifier << "\n";
     }
 
-    plist_t commandsArray = plist_new_array();
-    plist_array_append_item(commandsArray, commandsDictionary);
+    PList::Array commandsArray;
+    commandsArray.Append(commandsDictionary);
 
-    plist_t rootDictionary = plist_new_dict();
-    plist_dict_set_item(rootDictionary, "commands", commandsArray);
+    PList::Dictionary rootDictionary;
+    rootDictionary.Set("commands", commandsArray);
 
-    auto xmlData = SerializePlist(rootDictionary);
-    plist_free(rootDictionary);
+    const std::string xmlString = rootDictionary.ToXml();
     
-    if (!xmlData.has_value()) {
+    if (xmlString.empty()) {
         return false;
     }
     
-    const bool success = m_afcSession.WriteFile(PXLTriggerFilePath, xmlData->data(), xmlData->size());
+    const bool success = m_afcSession.WriteFile(PXLTriggerFilePath, (const uint8_t *)xmlString.data(), xmlString.size());
     
     if (m_verboseLoggingEnabled) {
         std::cout << "[+] PXLManager::RemoveApplication(void) -- Write file to " << PXLTriggerFilePath << " success: " << success << "\n";
@@ -239,24 +207,23 @@ bool PXLManager::InstallApplication(const std::vector<uint8_t>& pxlData) const {
         return false;
     }
 
-    plist_t commandsDictionary = plist_new_dict();
-    plist_dict_set_item(commandsDictionary, "command", plist_new_string("install"));
-    plist_dict_set_item(commandsDictionary, "package", plist_new_string("app.pxl"));
+    PList::Dictionary commandsDictionary;
+    commandsDictionary.Set("command", PList::String("install"));
+    commandsDictionary.Set("package", PList::String("app.pxl"));
 
-    plist_t commandsArray = plist_new_array();
-    plist_array_append_item(commandsArray, commandsDictionary);
+    PList::Array commandsArray;
+    commandsArray.Append(commandsDictionary);
 
-    plist_t rootDictionary = plist_new_dict();
-    plist_dict_set_item(rootDictionary, "commands", commandsArray);
+    PList::Dictionary rootDictionary;
+    rootDictionary.Set("commands", commandsArray);
 
-    auto xmlData = SerializePlist(rootDictionary);
-    plist_free(rootDictionary);
+    const std::string xmlString = rootDictionary.ToXml();
     
-    if (!xmlData.has_value()) {
+    if (xmlString.empty()) {
         return false;
     }
     
-    const bool success = m_afcSession.WriteFile(PXLTriggerFilePath, xmlData->data(), xmlData->size());
+    const bool success = m_afcSession.WriteFile(PXLTriggerFilePath, (const uint8_t *)xmlString.data(), xmlString.size());
     
     if (m_verboseLoggingEnabled) {
         std::cout << "[+] PXLManager::InstallApplication(void) -- Write file to " << PXLTriggerFilePath << " success: " << success << "\n";
