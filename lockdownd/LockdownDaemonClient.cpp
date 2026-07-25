@@ -358,7 +358,7 @@ std::optional<std::string> LockdownDaemonClient::StartSession(std::string_view h
 }
 
 std::optional<PairingRecordInfo> LockdownDaemonClient::LoadPairingRecordInfo(std::string_view recordPath) {
-    std::ifstream file(std::string(recordPath), std::ios::binary | std::ios::ate);
+    std::ifstream file(recordPath.data(), std::ios::binary | std::ios::ate);
     if (!file) {
         return std::nullopt;
     }
@@ -408,7 +408,7 @@ bool LockdownDaemonClient::SavePairingRecordInfo(
         return false;
     }
 
-    std::ofstream file(std::string(path), std::ios::binary);
+    std::ofstream file(path.data(), std::ios::binary);
     if (!file) {
         std::cerr << "Failed to open pairing record for writing: " << path << "\n";
         return false;
