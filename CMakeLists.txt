@@ -8,6 +8,7 @@ if(MSVC)
     set(STRICT_FLAGS
         /W4
         /WX
+        /permissive-
     )
 else()
     set(STRICT_FLAGS
