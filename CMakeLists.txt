@@ -8,7 +8,6 @@ if(MSVC)
     set(STRICT_FLAGS
         /W4
         /WX
-        /wd4996 # strncpy
     )
 else()
     set(STRICT_FLAGS
