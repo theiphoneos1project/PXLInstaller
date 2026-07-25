@@ -27,7 +27,7 @@ bool LockdownDaemonClient::Open(void) {
 
     int initStatus = libusb_init(&m_client->usb_ctx);
     if (initStatus < 0) {
-        std::cerr << "Failed to init libusb. Error: " << initStatus << libusb_strerror(initStatus) << "\n";
+        std::cerr << "Failed to init libusb. Error: " << initStatus << " (" << libusb_strerror(initStatus) << ")\n";
         return false;
     }
     
@@ -37,7 +37,7 @@ bool LockdownDaemonClient::Open(void) {
     
     int claimStatus = find_and_claim(m_client->usb_ctx, &m_client->usb_handle, &m_client->ep_out, &m_client->ep_in, &m_client->intf_num);
     if (claimStatus < 0) {
-        std::cerr << "Failed to claim interface. Error: " << claimStatus << libusb_strerror(claimStatus) << "\n";
+        std::cerr << "Failed to claim interface. Error: " << claimStatus << " (" << libusb_strerror(claimStatus) << ")\n";
         return false;
     }
     
@@ -55,7 +55,7 @@ bool LockdownDaemonClient::Open(void) {
 
     int connectStatus = session_connect(&m_client->session);
     if (connectStatus < 0) {
-        std::cerr << "Failed to connect to session. Error: " << connectStatus << libusb_strerror(connectStatus) << "\n";
+        std::cerr << "Failed to connect to session. Error: " << connectStatus << " (" << libusb_strerror(connectStatus) << ")\n";
         return false;
     }
 
