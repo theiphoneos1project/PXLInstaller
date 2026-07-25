@@ -68,11 +68,16 @@ std::optional<PXLManager::PXLApplication> PXLManager::ApplicationWithBundleIdent
 
     PList::Dictionary dictionary(*(PList::Dictionary *)structure.get());
 
+    auto GetStringValue = [&dictionary](const std::string& name) -> std::string {
+        auto node = dictionary.Get<PList::String>(name);
+        return node ? node->GetValue() : "(unknown)";
+    };
+
     PXLApplication application;
-    application.name = dictionary.Get<PList::String>("RDPxlPackageName")->GetValue();
+    application.name = GetStringValue("RDPxlPackageName");
     application.bundleIdentifier = bundleIdentifier;
-    application.version = dictionary.Get<PList::String>("RDPxlPackageVersion")->GetValue();
-    application.description = dictionary.Get<PList::String>("RDPxlPackageDesc")->GetValue();
+    application.version = GetStringValue("RDPxlPackageVersion");
+    application.description = GetStringValue("RDPxlPackageDesc");
     
     if (m_verboseLoggingEnabled) {
         std::cout << "[+] PXLManager::ApplicationWithBundleIdentifier(std::string_view) -- application.name: " << application.name << "\n";
