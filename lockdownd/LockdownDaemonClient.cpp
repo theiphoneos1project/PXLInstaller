@@ -1,6 +1,7 @@
 #include "LockdownDaemonClient.hpp"
 #include "Crypto.hpp"
 #include <plist/plist++.h>
+#include <limits.h>
 #include <iostream>
 #include <fstream>
 
@@ -62,7 +63,7 @@ bool LockdownDaemonClient::Open(void) {
 }
 
 std::optional<std::string> LockdownDaemonClient::StartPairedSession(std::string& outError) {
-    srand(time(NULL));
+    srand((int)time(NULL));
 
     auto udid = GetValueString("UniqueDeviceID");
     if (!udid.has_value()) {
@@ -139,7 +140,7 @@ std::optional<uint16_t> LockdownDaemonClient::StartService(std::string_view serv
         return std::nullopt;
     }
 
-    return portNode->GetValue();
+    return (uint16_t)portNode->GetValue();
 }
 
 std::optional<std::string> LockdownDaemonClient::GetValueString(std::string_view key) {
@@ -292,7 +293,7 @@ std::optional<std::vector<uint8_t>> LockdownDaemonClient::Exchange(const std::ve
 
     size_t received = 0;
     while (received < response.size()) {
-        const int count = session_recv(&m_client->session, response.data() + received, response.size() - received);
+        const int count = session_recv(&m_client->session, response.data() + received, (int)(response.size() - received));
 
         if (count <= 0) {
             return std::nullopt;
@@ -382,9 +383,9 @@ std::optional<PairingRecordInfo> LockdownDaemonClient::LoadPairingRecordInfo(std
         return std::nullopt;
     }
 
-    return PairingRecordInfo {
-        .HostIdentifier = node->GetValue()
-    };
+    PairingRecordInfo info;
+    info.HostIdentifier = node->GetValue();
+    return info;
 }
 
 bool LockdownDaemonClient::SavePairingRecordInfo(
