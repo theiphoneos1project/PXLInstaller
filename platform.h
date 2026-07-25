@@ -23,14 +23,10 @@
         size_t length = 0;
 
         if (_dupenv_s(&home, &length, "USERPROFILE") == 0 && home) {
-            strncpy(out, home, size_out - 1);
-            out[size_out - 1] = '\0';
-            free(home);
-            return;
+            snprintf(out, size_out, "%s", home);
+        } else {
+            snprintf(out, size_out, "C:\\Users");
         }
-
-        strncpy(out, "C:\\Users", size_out - 1);
-        out[size_out - 1] = '\0'; 
     }
 #else
     #include <arpa/inet.h>
@@ -46,8 +42,7 @@
 
     static inline void GetHomeDirectory(char *out, size_t size_out) {
         const char *home = getenv("HOME");
-        strncpy(out, home ? home : "/tmp", size_out - 1);
-        out[size_out - 1] = '\0';
+        snprintf(out, size_out, "%s", home ? home : "/tmp");
     }
 #endif
 
