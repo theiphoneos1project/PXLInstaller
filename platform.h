@@ -2,12 +2,13 @@
 #define PLATFORM_H
 
 #ifdef _WIN32
-    // #include <winsock2.h>
     #include <windows.h>
     #include <direct.h>
     #include <stdlib.h>
 
     #define __unused
+
+    #define PATH_MAX _MAX_PATH
 
     #define usleep(x) Sleep((x)/1000)
     #define mkdir(path, mode) _mkdir(path)
