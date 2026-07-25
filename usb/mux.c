@@ -17,29 +17,29 @@ typedef struct {
 
 static void flag_str(uint8_t flags, char *out, size_t outsz) {
     out[0] = '\0';
+
+    size_t written = 0;
+
     if (flags & TCP_SYN) {
-        strncat(out, "SYN|", outsz - strlen(out) - 1);
+        written += snprintf(out + written, outsz - written, "SYN|");
     }
 
     if (flags & TCP_ACK) {
-        strncat(out, "ACK|", outsz - strlen(out) - 1);
+        written += snprintf(out + written, outsz - written, "ACK|");
     }
 
     if (flags & TCP_FIN) {
-        strncat(out, "FIN|", outsz - strlen(out) - 1);
+        written += snprintf(out + written, outsz - written, "FIN|");
     }
 
     if (flags & TCP_RST) {
-        strncat(out, "RST|", outsz - strlen(out) - 1);
+        written += snprintf(out + written, outsz - written, "RST|");
     }
 
-    size_t n = strlen(out);
-    if (n > 0 && out[n-1] == '|') {
-        out[n-1] = '\0';
-    }
-
-    if (out[0] == '\0') {
-        strncpy(out, "NONE", outsz);
+    if (written > 0 && written < outsz && out[written - 1] == '|') {
+        out[written - 1] = '\0';
+    } else if (written == 0) {
+        snprintf(out, outsz, "NONE");
     }
 }
 
@@ -470,7 +470,20 @@ static void *thread_usb_to_tcp(void *arg) {
         if (n > 0) {
             ssize_t sent = send(ctx->tcp_fd, (const char *)buf, n, 0);
             if (sent < 0) {
-                fprintf(stderr, "[usb->tcp] send error: %s\n", strerror(errno));
+                char error_message[256] = {0};
+#ifdef _WIN32
+                int error_code = WSAGetLastError();
+
+                FormatMessageA(
+                    FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                    NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                    error_message, sizeof(error_message), NULL
+                );
+#else
+                int error_code = errno;
+                (void)strerror_r(error_code, error_message, sizeof(error_message));
+#endif
+                fprintf(stderr, "[usb->tcp] send error (%d): %s\n", error_code, error_message);
                 break;
             }
         }
