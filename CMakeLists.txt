@@ -31,22 +31,6 @@ else()
     endif()
 endif()
 
-find_package(unofficial-libplist CONFIG REQUIRED)
-find_package(PkgConfig REQUIRED)
-find_package(OpenSSL REQUIRED)
-
-if(MSVC)
-    set(ENV{PKG_CONFIG_PATH} "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/pkgconfig;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib/pkgconfig")
-
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE ON)
-
-    string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /LTCG /INCREMENTAL:NO")
-    string(APPEND CMAKE_CXX_FLAGS_DEBUG " /GL")
-    string(APPEND CMAKE_C_FLAGS_DEBUG " /GL")
-endif()
-
-pkg_check_modules(LIBUSB REQUIRED IMPORTED_TARGET libusb-1.0)
-
 set(SOURCES
     main.cpp
     pxl/PXLManager.cpp
@@ -56,11 +40,25 @@ set(SOURCES
     usb/mux.c
 )
 
+find_package(unofficial-libplist CONFIG REQUIRED)
+find_package(PkgConfig REQUIRED)
+find_package(OpenSSL REQUIRED)
+
+pkg_check_modules(LIBUSB REQUIRED IMPORTED_TARGET libusb-1.0)
+
 if(MSVC)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    set(ENV{PKG_CONFIG_PATH} "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/pkgconfig;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib/pkgconfig")
+    
     set(OPENSSL_USE_STATIC_LIBS TRUE)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
     add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
+endif()
+
+if(MSVC)
+    string(APPEND CMAKE_EXE_LINKER_FLAGS_RELEASE " /LTCG /INCREMENTAL:NO /NODEFAULTLIB:msvcrtd")
+    string(APPEND CMAKE_CXX_FLAGS_RELEASE " /GL")
+    string(APPEND CMAKE_C_FLAGS_RELEASE " /GL")
 endif()
 
 add_executable(pxlinstaller ${SOURCES})
@@ -98,7 +96,7 @@ if(APPLE)
     )
 endif()
 
-if(CMAKE_BUILD_TYPE STREQUAL "Release")
+if(CMAKE_BUILD_TYPE STREQUAL "Release" AND NOT WIN32)
     add_custom_command(TARGET pxlinstaller POST_BUILD
         COMMAND strip -x $<TARGET_FILE:pxlinstaller>
     )
