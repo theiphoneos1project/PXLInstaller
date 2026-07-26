@@ -6,6 +6,7 @@
 
 #ifdef _WIN32
     #include <windows.h>
+    #include <winsock2.h>
     #include <direct.h>
 
     #define PATH_MAX _MAX_PATH

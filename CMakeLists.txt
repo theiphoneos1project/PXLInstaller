@@ -59,6 +59,8 @@ set(SOURCES
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     set(OPENSSL_USE_STATIC_LIBS TRUE)
+
+    add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
 endif()
 
 add_executable(pxlinstaller ${SOURCES})
