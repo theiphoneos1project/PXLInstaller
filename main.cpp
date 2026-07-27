@@ -202,7 +202,7 @@ int main(int argc, char *argv[]) {
     } else if (command == "--dump-logs") {
         auto contents = afcSession.ReadFile("/var/root/Media/PXL/pxl.log");
         if (contents) {
-            std::cout.write((const char *)contents->data(), contents->size());
+            std::cout.write(reinterpret_cast<const char *>(contents->data()), contents->size());
         } else {
             std::cerr << "[-] Failed to read logs!\n";
             return EXIT_FAILURE;

@@ -1,6 +1,5 @@
 #include "LockdownDaemonClient.hpp"
 #include "Crypto.hpp"
-#include <plist/plist++.h>
 #include <limits.h>
 #include <iostream>
 #include <fstream>
@@ -48,7 +47,7 @@ bool LockdownDaemonClient::Open(void) {
     
     m_client->session.pipe = &m_client->pipe;
     m_client->session.device_port = LockdownDaemonPort;
-    m_client->session.src_port = (uint16_t)(49152 + rand() % 16384);
+    m_client->session.src_port = static_cast<uint16_t>(49152 + rand() % 16384);
     m_client->session.tx_seq = 100;
     m_client->session.rx_ack = 0;
     m_client->session.prebuf_len = 0;
@@ -63,7 +62,7 @@ bool LockdownDaemonClient::Open(void) {
 }
 
 std::optional<std::string> LockdownDaemonClient::StartPairedSession(std::string& outError) {
-    srand((int)time(NULL));
+    srand(static_cast<int>(time(NULL)));
 
     auto udid = GetValueString("UniqueDeviceID");
     if (!udid.has_value()) {
@@ -140,7 +139,7 @@ std::optional<uint16_t> LockdownDaemonClient::StartService(std::string_view serv
         return std::nullopt;
     }
 
-    return (uint16_t)portNode->GetValue();
+    return static_cast<uint16_t>(portNode->GetValue());
 }
 
 std::optional<std::string> LockdownDaemonClient::GetValueString(std::string_view key) {
@@ -225,10 +224,10 @@ std::optional<PairingRecordInfo> LockdownDaemonClient::AttemptPair(std::string_v
 
     request.Set("Request", PList::String("Pair"));
 
-    pairRecord.Set("DeviceCertificate", PList::Data((const char *)deviceCertificateDER->data(), deviceCertificateDER->size()));
-    pairRecord.Set("HostCertificate", PList::Data((const char *)hostCertificateDER->data(), hostCertificateDER->size()));
+    pairRecord.Set("DeviceCertificate", PList::Data(reinterpret_cast<const char *>(deviceCertificateDER->data()), deviceCertificateDER->size()));
+    pairRecord.Set("HostCertificate", PList::Data(reinterpret_cast<const char *>(hostCertificateDER->data()), hostCertificateDER->size()));
     pairRecord.Set("HostID", PList::String(hostIdentifier.data()));
-    pairRecord.Set("RootCertificate", PList::Data((const char *)rootCertificateDER->data(), rootCertificateDER->size()));
+    pairRecord.Set("RootCertificate", PList::Data(reinterpret_cast<const char *>(rootCertificateDER->data()), rootCertificateDER->size()));
     
     request.Set("PairRecord", pairRecord);
 
@@ -270,13 +269,13 @@ std::optional<PairingRecordInfo> LockdownDaemonClient::AttemptPair(std::string_v
 std::optional<std::vector<uint8_t>> LockdownDaemonClient::Exchange(const std::vector<uint8_t>& request) {
     uint8_t header[4];
 
-    w32be(header, (uint32_t)request.size());
+    w32be(header, static_cast<uint32_t>(request.size()));
 
     if (session_send_frame(&m_client->session, TCP_ACK, header, sizeof(header)) < 0) {
         return std::nullopt;
     }
 
-    if (session_send_frame(&m_client->session, TCP_ACK, request.data(), (int)request.size()) < 0) {
+    if (session_send_frame(&m_client->session, TCP_ACK, request.data(), static_cast<int>(request.size())) < 0) {
         return std::nullopt;
     }
 
@@ -293,13 +292,13 @@ std::optional<std::vector<uint8_t>> LockdownDaemonClient::Exchange(const std::ve
 
     size_t received = 0;
     while (received < response.size()) {
-        const int count = session_recv(&m_client->session, response.data() + received, (int)(response.size() - received));
+        const int count = session_recv(&m_client->session, response.data() + received, static_cast<int>(response.size() - received));
 
         if (count <= 0) {
             return std::nullopt;
         }
 
-        received += (size_t)count;
+        received += static_cast<size_t>(count);
     }
 
     return response;
@@ -317,12 +316,12 @@ std::optional<PList::Dictionary> LockdownDaemonClient::ExchangePlist(const PList
         return std::nullopt;
     }
 
-    std::unique_ptr<PList::Structure> structure(PList::Structure::FromMemory((const char *)response->data(), response->size()));
+    std::unique_ptr<PList::Structure> structure(PList::Structure::FromMemory(reinterpret_cast<const char *>(response->data()), response->size()));
     if (!structure || structure->GetType() != PLIST_DICT) {
         return std::nullopt;
     }
 
-    return PList::Dictionary(*(PList::Dictionary *)structure.get());
+    return PList::Dictionary(*static_cast<PList::Dictionary *>(structure.get()));
 }
 
 std::optional<std::string> LockdownDaemonClient::StartSession(std::string_view hostIdentifier, std::string& outError) {
@@ -366,8 +365,8 @@ std::optional<PairingRecordInfo> LockdownDaemonClient::LoadPairingRecordInfo(std
     const auto size = file.tellg();
     file.seekg(0);
 
-    std::vector<char> data((size_t)size);
-    if (!file.read((char *)data.data(), (std::streamsize)data.size())) {
+    std::vector<char> data(static_cast<size_t>(size));
+    if (!file.read(data.data(), static_cast<std::streamsize>(data.size()))) {
         return std::nullopt;
     }
 
@@ -376,7 +375,7 @@ std::optional<PairingRecordInfo> LockdownDaemonClient::LoadPairingRecordInfo(std
         return std::nullopt;
     }
 
-    auto *dictionary = (PList::Dictionary *)plist.get();
+    auto *dictionary = static_cast<PList::Dictionary *>(plist.get());
 
     auto node = dictionary->Get<PList::String>("HostID");
     if (!node || node->GetType() != PLIST_STRING) {
@@ -397,11 +396,11 @@ bool LockdownDaemonClient::SavePairingRecordInfo(
     const std::vector<uint8_t>& hostKeyDER
 ) {
     PList::Dictionary dictionary;
-    dictionary.Set("DeviceCertificate", PList::Data((const char *)deviceCertificateDER.data(), deviceCertificateDER.size()));
-    dictionary.Set("HostCertificate", PList::Data((const char *)hostCertificateDER.data(), hostCertificateDER.size()));
+    dictionary.Set("DeviceCertificate", PList::Data(reinterpret_cast<const char *>(deviceCertificateDER.data()), deviceCertificateDER.size()));
+    dictionary.Set("HostCertificate", PList::Data(reinterpret_cast<const char *>(hostCertificateDER.data()), hostCertificateDER.size()));
     dictionary.Set("HostID", PList::String(hostIdentifier.data()));
-    dictionary.Set("HostPrivateKey", PList::Data((const char *)hostKeyDER.data(), hostKeyDER.size()));
-    dictionary.Set("RootCertificate", PList::Data((const char *)rootCertificateDER.data(), rootCertificateDER.size()));
+    dictionary.Set("HostPrivateKey", PList::Data(reinterpret_cast<const char *>(hostKeyDER.data()), hostKeyDER.size()));
+    dictionary.Set("RootCertificate", PList::Data(reinterpret_cast<const char *>(rootCertificateDER.data()), rootCertificateDER.size()));
 
     const std::string xmlString = dictionary.ToXml();
     if (xmlString.empty()) {
@@ -414,6 +413,6 @@ bool LockdownDaemonClient::SavePairingRecordInfo(
         return false;
     }
 
-    file.write(xmlString.data(), (std::streamsize)xmlString.size());
+    file.write(xmlString.data(), static_cast<std::streamsize>(xmlString.size()));
     return file.good();
 }

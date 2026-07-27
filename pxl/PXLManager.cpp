@@ -61,12 +61,12 @@ std::optional<PXLManager::PXLApplication> PXLManager::ApplicationWithBundleIdent
         return std::nullopt;
     }
 
-    std::unique_ptr<PList::Structure> structure(PList::Structure::FromMemory((const char *)fileContents->data(), fileContents->size()));
+    std::unique_ptr<PList::Structure> structure(PList::Structure::FromMemory(reinterpret_cast<const char *>(fileContents->data()), fileContents->size()));
     if (!structure || structure->GetType() != PLIST_DICT) {
         return std::nullopt;
     }
 
-    PList::Dictionary dictionary(*(PList::Dictionary *)structure.get());
+    PList::Dictionary dictionary(*static_cast<PList::Dictionary *>(structure.get()));
 
     auto GetStringValue = [&dictionary](const std::string& name) -> std::string {
         auto node = dictionary.Get<PList::String>(name);
@@ -175,7 +175,7 @@ bool PXLManager::RemoveApplication(const PXLApplication& application) const {
         return false;
     }
     
-    const bool success = m_afcSession.WriteFile(PXLTriggerFilePath, (const uint8_t *)xmlString.data(), xmlString.size());
+    const bool success = m_afcSession.WriteFile(PXLTriggerFilePath, reinterpret_cast<const uint8_t *>(xmlString.data()), xmlString.size());
     
     if (m_verboseLoggingEnabled) {
         std::cout << "[+] PXLManager::RemoveApplication(void) -- Write file to " << PXLTriggerFilePath << " success: " << success << "\n";
@@ -228,7 +228,7 @@ bool PXLManager::InstallApplication(const std::vector<uint8_t>& pxlData) const {
         return false;
     }
     
-    const bool success = m_afcSession.WriteFile(PXLTriggerFilePath, (const uint8_t *)xmlString.data(), xmlString.size());
+    const bool success = m_afcSession.WriteFile(PXLTriggerFilePath, reinterpret_cast<const uint8_t *>(xmlString.data()), xmlString.size());
     
     if (m_verboseLoggingEnabled) {
         std::cout << "[+] PXLManager::InstallApplication(void) -- Write file to " << PXLTriggerFilePath << " success: " << success << "\n";

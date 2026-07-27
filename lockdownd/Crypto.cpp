@@ -57,7 +57,7 @@ EVP_PKEY *Crypto::GenerateRSAKey(void) {
 }
 
 EVP_PKEY *Crypto::ParseDevicePublicKey(const std::vector<uint8_t>& pem) {
-    BIO *bio = BIO_new_mem_buf(pem.data(), (int)pem.size());
+    BIO *bio = BIO_new_mem_buf(pem.data(), static_cast<int>(pem.size()));
     if (!bio) {
         return nullptr;
     }

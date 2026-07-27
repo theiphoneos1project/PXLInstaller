@@ -16,7 +16,7 @@ typedef struct {
 AppleFileConduitSession::AppleFileConduitSession(usb_pipe_t *usbPipe, uint16_t afcPort) : m_afcSession(std::make_unique<mux_session_t>()) {
     m_afcSession->pipe = usbPipe;
     m_afcSession->device_port = afcPort;
-    m_afcSession->src_port = (uint16_t)(49152 + rand() % 16384);
+    m_afcSession->src_port = static_cast<uint16_t>(49152 + rand() % 16384);
     m_afcSession->tx_seq = 100;
     m_afcSession->rx_ack = 0;
 }
@@ -33,7 +33,7 @@ std::optional<std::vector<std::string>> AppleFileConduitSession::ContentsOfDirec
     
     std::vector<std::string> entries;
 
-    const char *pointer = (const char *)response->data();
+    const char *pointer = reinterpret_cast<const char *>(response->data());
     const char *end = pointer + response->size();
 
     while (pointer < end && *pointer != '\0') {
@@ -64,7 +64,7 @@ std::optional<std::vector<uint8_t>> AppleFileConduitSession::ReadFile(std::strin
         return std::nullopt;
     }
 
-    uint64_t mode = (uint64_t)OperationType::Status;
+    uint64_t mode = static_cast<uint64_t>(OperationType::Status);
     memcpy(openPayload, &mode, 8);
     memcpy(openPayload + 8, remotePath.data(), remotePathLength);
 
@@ -111,7 +111,7 @@ bool AppleFileConduitSession::WriteFile(std::string_view remotePath, const uint8
         return false;
     }
 
-    uint64_t mode = (uint64_t)OperationType::ReadDirectory;
+    uint64_t mode = static_cast<uint64_t>(OperationType::ReadDirectory);
     memcpy(openPayload, &mode, 8);
     memcpy(openPayload + 8, remotePath.data(), remotePathLength);
 
@@ -197,11 +197,11 @@ AppleFileConduitSession::PathKind AppleFileConduitSession::GetPathKind(std::stri
     const uint8_t *data = response->data();
     size_t responseLength = response->size();
     
-    for (const char *pointer = (const char *)data; pointer < (const char *)data + responseLength;) {
+    for (const char *pointer = reinterpret_cast<const char *>(data); pointer < reinterpret_cast<const char *>(data) + responseLength;) {
         size_t keyLength = strlen(pointer);
         const char *key = pointer;
         pointer += keyLength + 1;
-        if (pointer >= (const char *)data + responseLength) {
+        if (pointer >= reinterpret_cast<const char *>(data) + responseLength) {
             break;
         }
 
@@ -227,12 +227,12 @@ std::optional<std::vector<uint8_t>> AppleFileConduitSession::Dispatch(OperationT
         return std::nullopt;
     }
 
-    afc_header_t *header = (afc_header_t *)buffer;
+    afc_header_t *header = reinterpret_cast<afc_header_t *>(buffer);
     memcpy(header->magic, AFC_MAGIC, 8);
     header->entire_length = sizeof(afc_header_t) + payloadLength;
     header->this_length = sizeof(afc_header_t) + headerOnlyLength;
     header->packet_num = m_packetNumber;
-    header->operation = (uint64_t)operation;
+    header->operation = static_cast<uint64_t>(operation);
 
     m_packetNumber += 1;
 
@@ -240,21 +240,21 @@ std::optional<std::vector<uint8_t>> AppleFileConduitSession::Dispatch(OperationT
         memcpy(buffer + sizeof(afc_header_t), payload, payloadLength);
     }
 
-    if (session_send_frame(m_afcSession.get(), TCP_ACK, buffer, (int)(sizeof(afc_header_t) + payloadLength)) < 0) {
+    if (session_send_frame(m_afcSession.get(), TCP_ACK, buffer, static_cast<int>(sizeof(afc_header_t) + payloadLength)) < 0) {
         std::cerr << "[AppleFileConduitSession] Send failed\n";
         return std::nullopt;
     }
 
     uint8_t responseBuffer[sizeof(afc_header_t) + 8192];
     int received = session_recv(m_afcSession.get(), responseBuffer, sizeof(responseBuffer));
-    if (received < (int)sizeof(afc_header_t)) {
+    if (received < static_cast<int>(sizeof(afc_header_t))) {
         std::cerr << "[AppleFileConduitSession] Short response: " << received << '\n';
         return std::nullopt;
     }
     
-    size_t bytesReceived = (size_t)received;
+    size_t bytesReceived = static_cast<size_t>(received);
     
-    afc_header_t *responseHeader = (afc_header_t *)responseBuffer;
+    afc_header_t *responseHeader = reinterpret_cast<afc_header_t *>(responseBuffer);
     if (memcmp(responseHeader->magic, AFC_MAGIC, 8) != 0) {
         std::cerr << "[AppleFileConduitSession] Bad magic in response\n";
         return std::nullopt;
@@ -266,20 +266,20 @@ std::optional<std::vector<uint8_t>> AppleFileConduitSession::Dispatch(OperationT
     }
 
     while (bytesReceived < responseHeader->entire_length) {
-        int newBytes = session_recv(m_afcSession.get(), responseBuffer + bytesReceived, (int)(sizeof(responseBuffer) - bytesReceived));
+        int newBytes = session_recv(m_afcSession.get(), responseBuffer + bytesReceived, static_cast<int>(sizeof(responseBuffer) - bytesReceived));
         
         if (newBytes <= 0) {
             std::cerr << "[AppleFileConduitSession] Failed receiving packet\n";
             return std::nullopt;
         }
 
-        bytesReceived += (size_t)newBytes;
+        bytesReceived += static_cast<size_t>(newBytes);
     }
 
     size_t payloadSize = bytesReceived - sizeof(afc_header_t);
     const uint8_t *payloadStart = responseBuffer + sizeof(afc_header_t);
     
-    if ((OperationType)(responseHeader->operation) == OperationType::Status && payloadSize >= sizeof(uint64_t)) {
+    if (static_cast<OperationType>(responseHeader->operation) == OperationType::Status && payloadSize >= sizeof(uint64_t)) {
         uint64_t status;
         memcpy(&status, payloadStart, 8);
         if (status != 0) {
