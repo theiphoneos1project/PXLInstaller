@@ -31,20 +31,9 @@ else()
     endif()
 endif()
 
-set(SOURCES
-    main.cpp
-    pxl/PXLManager.cpp
-    lockdownd/Crypto.cpp
-    lockdownd/LockdownDaemonClient.cpp
-    afc/AppleFileConduitSession.cpp
-    usb/mux.c
-)
-
 find_package(unofficial-libplist CONFIG REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(OpenSSL REQUIRED)
-
-pkg_check_modules(LIBUSB REQUIRED IMPORTED_TARGET libusb-1.0)
 
 if(MSVC)
     set(ENV{PKG_CONFIG_PATH} "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/pkgconfig;${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/lib/pkgconfig")
@@ -53,19 +42,30 @@ if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
     add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX)
-endif()
 
-if(MSVC)
     string(APPEND CMAKE_EXE_LINKER_FLAGS_RELEASE " /LTCG /INCREMENTAL:NO /NODEFAULTLIB:msvcrtd")
     string(APPEND CMAKE_CXX_FLAGS_RELEASE " /GL")
     string(APPEND CMAKE_C_FLAGS_RELEASE " /GL")
 endif()
 
-add_executable(pxlinstaller ${SOURCES})
+pkg_check_modules(LIBUSB REQUIRED IMPORTED_TARGET libusb-1.0)
 
-target_compile_options(pxlinstaller PRIVATE ${STRICT_FLAGS})
+add_library(pxlinstaller-core STATIC
+    core/pxl/PXLManager.cpp
+    core/lockdownd/Crypto.cpp
+    core/lockdownd/LockdownDaemonClient.cpp
+    core/afc/AppleFileConduitSession.cpp
+    core/usb/mux.c
+)
 
-target_link_libraries(pxlinstaller PRIVATE
+target_compile_options(pxlinstaller-core PRIVATE ${STRICT_FLAGS})
+
+target_include_directories(pxlinstaller-core PUBLIC
+    ${CMAKE_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/core
+)
+
+target_link_libraries(pxlinstaller-core PUBLIC
     unofficial::libplist::libplist
     unofficial::libplist::libplist++
     PkgConfig::LIBUSB
@@ -73,11 +73,19 @@ target_link_libraries(pxlinstaller PRIVATE
     OpenSSL::Crypto
 )
 
-target_include_directories(pxlinstaller PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(pxlinstaller-core PRIVATE ${CMAKE_SOURCE_DIR})
 
 if(WIN32)
-    target_link_libraries(pxlinstaller PRIVATE ws2_32)
+    target_link_libraries(pxlinstaller-core PRIVATE ws2_32)
 endif()
+
+# CLI
+
+add_executable(pxlinstaller cli/main.cpp)
+target_compile_options(pxlinstaller PRIVATE ${STRICT_FLAGS})
+target_link_libraries(pxlinstaller PRIVATE pxlinstaller-core)
+
+# Platform-specific
 
 if(APPLE)
     target_link_options(pxlinstaller PRIVATE
