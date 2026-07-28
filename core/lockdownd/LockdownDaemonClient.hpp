@@ -52,6 +52,9 @@ public:
     LockdownDaemonClient& operator=(const LockdownDaemonClient& rhs) = delete;
 
     bool Open(void);
+    void Close(void);
+
+    bool IsOpen(void);
 
     std::optional<std::string> StartPairedSession(std::string& outError);
     std::optional<uint16_t> StartService(std::string_view serviceName, std::string& outError);

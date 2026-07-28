@@ -7,21 +7,39 @@
 LockdownDaemonClient::LockdownDaemonClient() : m_client(std::make_unique<lockdownd_client_t>()) {}
 
 LockdownDaemonClient::~LockdownDaemonClient() {
-    if (m_client->usb_handle) {
-        session_close(&m_client->session);
+    Close();
+}
 
-        libusb_release_interface(m_client->usb_handle, m_client->intf_num);
-        libusb_close(m_client->usb_handle);
-        m_client->usb_handle = nullptr;
+bool LockdownDaemonClient::IsOpen(void) {
+    if (!m_client || !m_client->usb_handle) {
+        return false;
     }
-    
-    if (m_client->usb_ctx) {
-        libusb_exit(m_client->usb_ctx);
-        m_client->usb_ctx = nullptr;
+
+    PList::Dictionary request;
+    request.Set("Label", PList::String(LockdownDaemonLabel.data()));
+    request.Set("Request", PList::String("QueryType"));
+
+    auto response = ExchangePlist(request);
+    if (!response.has_value()) {
+        return false;
     }
+
+    auto typeNode = response->Get<PList::String>("Type");
+    if (typeNode && typeNode->GetType() == PLIST_STRING && typeNode->GetValue() == "com.apple.mobile.lockdown") {
+        return true;
+    }
+
+    Close();
+    return false;
 }
 
 bool LockdownDaemonClient::Open(void) {
+    if (IsOpen()) {
+        return true;
+    }
+
+    Close();
+
     m_client = std::make_unique<lockdownd_client_t>();
 
     int initStatus = libusb_init(&m_client->usb_ctx);
@@ -59,6 +77,23 @@ bool LockdownDaemonClient::Open(void) {
     }
 
     return true;
+}
+
+void LockdownDaemonClient::Close(void) {
+    if (m_client) {
+        if (m_client->usb_handle) {
+            session_close(&m_client->session);
+
+            libusb_release_interface(m_client->usb_handle, m_client->intf_num);
+            libusb_close(m_client->usb_handle);
+            m_client->usb_handle = nullptr;
+        }
+        
+        if (m_client->usb_ctx) {
+            libusb_exit(m_client->usb_ctx);
+            m_client->usb_ctx = nullptr;
+        }
+    }
 }
 
 std::optional<std::string> LockdownDaemonClient::StartPairedSession(std::string& outError) {
