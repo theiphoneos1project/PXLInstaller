@@ -593,6 +593,10 @@ int find_and_claim(libusb_context *ctx, libusb_device_handle **out_handle, uint8
             continue;
         }
 
+        if (libusb_has_capability(LIBUSB_CAP_SUPPORTS_DETACH_KERNEL_DRIVER)) {
+            libusb_set_auto_detach_kernel_driver(handle, 1);
+        }
+
         int cur_cfg = 0;
         libusb_get_configuration(handle, &cur_cfg);
 
