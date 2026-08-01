@@ -1,5 +1,6 @@
 #include "AppleFileConduitSession.hpp"
 #include <iostream>
+#include <random>
 
 #define AFC_MAGIC "CFA6LPAA"
 
@@ -13,10 +14,16 @@ typedef struct {
 } afc_header_t;
 #pragma pack(pop)
 
+static uint16_t RandomPort(void) {
+    static std::mt19937 random(std::random_device{}());
+    static std::uniform_int_distribution<uint16_t> distribution(49152, 65535);
+    return distribution(random);
+}
+
 AppleFileConduitSession::AppleFileConduitSession(usb_pipe_t *usbPipe, uint16_t afcPort) : m_afcSession(std::make_unique<mux_session_t>()) {
     m_afcSession->pipe = usbPipe;
     m_afcSession->device_port = afcPort;
-    m_afcSession->src_port = static_cast<uint16_t>(49152 + rand() % 16384);
+    m_afcSession->src_port = static_cast<uint16_t>(RandomPort());
     m_afcSession->tx_seq = 100;
     m_afcSession->rx_ack = 0;
 }
@@ -86,8 +93,12 @@ std::optional<std::vector<uint8_t>> AppleFileConduitSession::ReadFile(std::strin
         memcpy(readRequest + 8, &wantLength, sizeof(wantLength));
 
         auto chunk = Dispatch(OperationType::FileRead, readRequest, 16, 16);
+        if (!chunk) {
+            Dispatch(OperationType::FileClose, &handle, 8, 8);
+            return std::nullopt;
+        }
         
-        if (!chunk || chunk->empty()) {
+        if (chunk->empty()) {
             break;
         }
         

@@ -97,8 +97,6 @@ void LockdownDaemonClient::Close(void) {
 }
 
 std::optional<std::string> LockdownDaemonClient::StartPairedSession(std::string& outError) {
-    srand(static_cast<int>(time(NULL)));
-
     auto udid = GetValueString("UniqueDeviceID");
     if (!udid.has_value()) {
         std::cerr << "GetValueString(\"UniqueDeviceID\") failed!\n";
