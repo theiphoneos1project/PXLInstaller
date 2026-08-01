@@ -21,13 +21,14 @@ std::optional<std::vector<PXLManager::PXLApplication>> PXLManager::GetInstalledA
     applications.reserve(entries->size());
 
     static constexpr std::string_view PlistExtension = ".plist";
+    static constexpr size_t PlistExtensionLength = PlistExtension.length();
 
     for (const std::string& entry : *entries) {
         if (entry.empty() || entry.front() == '.') {
             continue;
         }
 
-        if (entry.length() <= PlistExtension.length() || entry.compare(entry.length() - PlistExtension.length(), PlistExtension.length(), PlistExtension) != 0) {
+        if (entry.length() <= PlistExtensionLength || entry.compare(entry.length() - PlistExtensionLength, PlistExtensionLength, PlistExtension) != 0) {
             continue;
         }
 
@@ -35,7 +36,7 @@ std::optional<std::vector<PXLManager::PXLApplication>> PXLManager::GetInstalledA
             std::cout << "[+] PXLManager::GetInstalledApplications(void) -- path: " << entry << "\n";
         }
 
-        auto application = ApplicationWithBundleIdentifier(entry.substr(0, entry.length() - 6));
+        auto application = ApplicationWithBundleIdentifier(entry.substr(0, entry.length() - PlistExtensionLength));
         if (application.has_value()) {
             applications.emplace_back(*application);
         }
