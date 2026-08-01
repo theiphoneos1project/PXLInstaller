@@ -28,7 +28,7 @@ public:
     std::optional<std::vector<PXLApplication>> GetInstalledApplications(void) const;
     std::optional<PXLApplication> ApplicationWithBundleIdentifier(std::string_view bundleIdentifier) const;
 
-    bool InstallDaemon(void) const;
+    bool InstallDaemon(std::string_view filesDirectory) const;
     bool IsDaemonInstalled(void) const;
     
     bool RemoveApplication(const PXLApplication& application) const;

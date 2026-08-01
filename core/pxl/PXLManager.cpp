@@ -89,9 +89,14 @@ std::optional<PXLManager::PXLApplication> PXLManager::ApplicationWithBundleIdent
     return application;
 }
 
-bool PXLManager::InstallDaemon(void) const {
+bool PXLManager::InstallDaemon(std::string_view filesDirectory) const {
     if (m_verboseLoggingEnabled) {
         std::cout << "[+] PXLManager::InstallDaemon(void) -- Start\n";
+    }
+
+    if (!m_afcSession.PathExists("/bin/chmod")) {
+        std::cerr << "[+] Device does not have chmod binary. Install a BSD subsystem.\n";
+        return false;
     }
 
     if (!m_afcSession.PathExists("/etc/init.d")) {
@@ -105,11 +110,13 @@ bool PXLManager::InstallDaemon(void) const {
         }
     }
 
+    std::string files(filesDirectory);
+
     std::unordered_map<std::string, std::string> fileMap = {
-        { "files/hackinit.sh", "/etc/hackinit.sh" },
-        { "files/pxl.sh", "/etc/init.d/pxl.sh" },
-        { "files/PXLdaemon", PXLDaemonPath.data() },
-        { "files/com.apple.update.plist.hackinit", "/System/Library/LaunchDaemons/com.apple.update.plist" },
+        { (files + "/hackinit.sh"), "/etc/hackinit.sh" },
+        { (files + "/pxl.sh"), "/etc/init.d/pxl.sh" },
+        { (files + "/PXLdaemon"), PXLDaemonPath.data() },
+        { (files + "/com.apple.update.plist.hackinit"), "/System/Library/LaunchDaemons/com.apple.update.plist" },
     };
     
     for (const auto& [localPath, remotePath] : fileMap) {

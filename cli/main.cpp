@@ -27,6 +27,12 @@ static std::string EscapeJSON(std::string_view input) {
     return stream.str();
 }
 
+static std::string GetFilesDirectory(void) {
+    char directory[PATH_MAX];
+    GetExecutableDirectory(directory, sizeof(directory));
+    return std::string(directory) + "/files/";
+}
+
 static void PrintUsage(void) {
     std::cout << "\n"
               << "  PXLInstaller CLI  \n"
@@ -116,7 +122,7 @@ int main(int argc, char *argv[]) {
     std::string_view command = argv[1];
     
     if (command == "--install-daemon") {
-        bool successfullyInstalled = manager.InstallDaemon();
+        bool successfullyInstalled = manager.InstallDaemon(GetFilesDirectory());
         if (successfullyInstalled) {
             std::cout << "[+] Successfully installed PXLdaemon!\n";
             std::cout << "Please reboot your device to finish the installation!\n";
