@@ -121,7 +121,9 @@ std::optional<std::string> LockdownDaemonClient::StartPairedSession(std::string&
     }
 
     if (needsPair) {
-        info = AttemptPair(pairingRecordsPlistPath, info->HostIdentifier);
+        const std::string hostIdentifier = Crypto::GenerateUUID();
+        info = AttemptPair(pairingRecordsPlistPath, hostIdentifier);
+        
         if (!info.has_value()) {
             return std::nullopt;
         }
