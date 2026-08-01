@@ -90,6 +90,10 @@ std::optional<PXLManager::PXLApplication> PXLManager::ApplicationWithBundleIdent
     return application;
 }
 
+bool PXLManager::IsProcessingCommand(void) const {
+    return m_afcSession.PathExists(PXLTriggerFilePath);
+}
+
 bool PXLManager::InstallDaemon(std::string_view filesDirectory) const {
     if (m_verboseLoggingEnabled) {
         std::cout << "[+] PXLManager::InstallDaemon(void) -- Start\n";
