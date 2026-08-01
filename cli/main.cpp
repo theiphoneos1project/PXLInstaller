@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
         }
 
         for (const PXLManager::PXLApplication& application : *applications) {
-            std::cout << application.name << " (" << application.bundleIdentifier << ") @ " << application.version << std::endl;
+            std::cout << application.name << " (" << application.bundleIdentifier << ") @ " << application.version << "\n";
         }
     } else if (command == "--remove-application") {
         if (argc < 3 || std::string(argv[2]) == "--verbose") {
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
         if (sucessfullyRemoved) {
             std::cout << "[+] Successfully removed " << application->name << " (" << application->bundleIdentifier << ") @ " << application->version << " from the device! Your device will now respring.\n";
         } else {
-            std::cout << "[-] Failed to remove application. Please check logs at " << PXLManager::PXLFolderPath << "/pxl.log" << std::endl;
+            std::cout << "[-] Failed to remove application. Please check logs at " << PXLManager::PXLFolderPath << "/pxl.log\n";
             return EXIT_FAILURE;
         }
     } else if (command == "--install-application") {
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
         if (successfullyInstalled) {
             std::cout << "[+] Successfully installed " << argv[2] << " on device! Your device will now respring.\n";
         } else {
-            std::cout << "[-] Failed to install PXL. Please check logs at " << PXLManager::PXLFolderPath << "/pxl.log" << std::endl;
+            std::cout << "[-] Failed to install PXL. Please check logs at " << PXLManager::PXLFolderPath << "/pxl.log\n";
             return EXIT_FAILURE;
         }
     } else if (command == "--dump-logs") {
