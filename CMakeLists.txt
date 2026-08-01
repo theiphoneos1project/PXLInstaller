@@ -85,6 +85,76 @@ add_executable(pxlinstaller cli/main.cpp)
 target_compile_options(pxlinstaller PRIVATE ${STRICT_FLAGS})
 target_link_libraries(pxlinstaller PRIVATE pxlinstaller-core)
 
+add_custom_command(TARGET pxlinstaller POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/files
+    $<TARGET_FILE_DIR:pxlinstaller>/files
+)
+
+# GUI
+
+find_package(wxWidgets COMPONENTS core base QUIET)
+if(wxWidgets_FOUND)
+    include(${wxWidgets_USE_FILE})
+
+    add_executable(pxlinstaller-gui 
+        gui/main.cpp
+        gui/MainFrame.cpp
+        gui/ControlPanel.cpp
+        gui/DevicePanel.cpp
+    )
+    target_compile_options(pxlinstaller-gui PRIVATE ${STRICT_FLAGS})
+    target_link_libraries(pxlinstaller-gui PRIVATE
+        pxlinstaller-core
+        ${wxWidgets_LIBRARIES}
+    )
+
+    if(APPLE)
+        target_link_options(pxlinstaller-gui PRIVATE -Wl,-no_warn_duplicate_libraries)
+
+        set_target_properties(pxlinstaller-gui PROPERTIES
+            OSX_ARCHITECTURES "${CMAKE_OSX_ARCHITECTURES}"
+            OSX_DEPLOYMENT_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}"
+
+            MACOSX_BUNDLE TRUE
+            MACOSX_BUNDLE_GUI_IDENTIFIER "com.nightwind.pxlinstaller"
+            MACOSX_BUNDLE_BUNDLE_NAME "PXLInstaller"
+        )
+
+        add_custom_command(TARGET pxlinstaller-gui POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/files
+            $<TARGET_BUNDLE_CONTENT_DIR:pxlinstaller-gui>/Resources/files
+        )
+    else()
+        add_custom_command(TARGET pxlinstaller-gui POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/files
+            $<TARGET_FILE_DIR:pxlinstaller-gui>/files
+        )
+    endif()
+
+    function(binary_to_header INPUT OUTPUT NAME)
+        file(READ "${INPUT}" data HEX)
+        string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1, " data "${data}")
+        string(REGEX REPLACE ", $" "" data "${data}")
+        file(WRITE "${OUTPUT}"
+    "#pragma once
+    #include <stddef.h>
+    static const unsigned char ${NAME}_image[] = { ${data} };
+    static const size_t ${NAME}_image_len = sizeof(${NAME}_image);
+    ")
+    endfunction()
+
+    binary_to_header(${CMAKE_SOURCE_DIR}/gui/images/iphone1,1.png ${CMAKE_SOURCE_DIR}/gui/generated/iphone1_1.h iphone1_1)
+    binary_to_header(${CMAKE_SOURCE_DIR}/gui/images/ipod1,1.png   ${CMAKE_SOURCE_DIR}/gui/generated/ipod1_1.h   ipod1_1)
+    binary_to_header(${CMAKE_SOURCE_DIR}/gui/images/connect.png   ${CMAKE_SOURCE_DIR}/gui/generated/connect.h   connect)
+
+    target_include_directories(pxlinstaller-gui PRIVATE ${CMAKE_SOURCE_DIR}/gui/generated)
+else()
+    message(STATUS "wxWidgets not found, skipping GUI target")
+endif()
+
 # Platform-specific
 
 if(APPLE)
