@@ -1,15 +1,12 @@
 #include <iostream>
 #include <fstream>
-#include <sstream>
 
 #include "lockdownd/LockdownDaemonClient.hpp"
 #include "afc/AppleFileConduitSession.hpp"
 #include "pxl/PXLManager.hpp"
 
-static bool g_isVerboseLoggingEnabled = false;
-
 static std::string GetFilesDirectory(void) {
-    char directory[PATH_MAX];
+    char directory[PATH_MAX] = {0};
     GetExecutableDirectory(directory, sizeof(directory));
     return std::string(directory) + "/files/";
 }
@@ -23,7 +20,8 @@ static void PrintUsage(void) {
               << "  ./pxlinstaller --list-applications\n"
               << "  ./pxlinstaller --remove-application <Bundle ID>\n"
               << "  ./pxlinstaller --install-application <path/to/pxl>\n"
-              << "  ./pxlinstaller --dump-logs\n\n";
+              << "  ./pxlinstaller --dump-logs\n\n"
+              << "Add --verbose as your last argument to get a verbose output.\n\n";
 }
 
 #ifdef _WIN32
@@ -47,8 +45,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    bool isVerboseLoggingEnabled = false;
     if (std::string(argv[argc - 1]) == "--verbose") {
-        g_isVerboseLoggingEnabled = true;
+        isVerboseLoggingEnabled = true;
     }
 
 #ifdef _WIN32
@@ -62,7 +61,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (g_isVerboseLoggingEnabled) {
+    if (isVerboseLoggingEnabled) {
         std::cout << "[+] We're in!\n";
         std::cout << "[+] USB connected, starting lockdown session...\n\n";
     }
@@ -74,7 +73,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (g_isVerboseLoggingEnabled) {
+    if (isVerboseLoggingEnabled) {
         std::cout << "Device: " << lockdowndClient.GetValueString("ProductType").value_or("Unknown Device")
                 << " (" << lockdowndClient.GetValueString("DeviceName").value_or("Unknown Device Name") << ")\n";
         std::cout << "Software version: " << lockdowndClient.GetValueString("ProductVersion").value_or("Unknown Version") 
@@ -97,7 +96,7 @@ int main(int argc, char *argv[]) {
     }
 
     PXLManager manager(afcSession);
-    manager.SetVerboseLoggingEnabled(g_isVerboseLoggingEnabled);
+    manager.SetVerboseLoggingEnabled(isVerboseLoggingEnabled);
     
     std::string_view command = argv[1];
     
@@ -177,6 +176,10 @@ int main(int argc, char *argv[]) {
             std::cerr << "[-] Failed to read logs!\n";
             return EXIT_FAILURE;
         }
+    } else {
+        std::cerr << "[-] Unknown command: " << command << "\n";
+        PrintUsage();
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
