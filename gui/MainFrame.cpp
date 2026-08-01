@@ -310,7 +310,6 @@ void MainFrame::RefreshDeviceUI(void) {
             m_controlPanel->SetStatus("Failed to read installed applications from device.", true);
             applications = std::vector<PXLManager::PXLApplication>();
         }
-        std::cout << "size: " << applications->size() << std::endl;
         m_devicePanel->RenderDevice(*productType, *applications);
     } else {
         m_devicePanel->RenderTransientView();
