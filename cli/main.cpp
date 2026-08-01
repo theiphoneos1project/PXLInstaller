@@ -8,25 +8,6 @@
 
 static bool g_isVerboseLoggingEnabled = false;
 
-static std::string EscapeJSON(std::string_view input) {
-    std::ostringstream stream;
-    
-    for (char character : input) {
-        switch (character) {
-            case '"': stream << "\\\""; break;
-            case '\\': stream << "\\\\"; break;
-            case '\b': stream << "\\b"; break;
-            case '\f': stream << "\\f"; break;
-            case '\n': stream << "\\n"; break;
-            case '\r': stream << "\\r"; break;
-            case '\t': stream << "\\t"; break;
-            default: stream << character; break;
-        }
-    }
-
-    return stream.str();
-}
-
 static std::string GetFilesDirectory(void) {
     char directory[PATH_MAX];
     GetExecutableDirectory(directory, sizeof(directory));
@@ -40,7 +21,6 @@ static void PrintUsage(void) {
               << "Usage:\n"
               << "  ./pxlinstaller --install-daemon\n"
               << "  ./pxlinstaller --list-applications\n"
-              << "  ./pxlinstaller --list-applications-json\n"
               << "  ./pxlinstaller --remove-application <Bundle ID>\n"
               << "  ./pxlinstaller --install-application <path/to/pxl>\n"
               << "  ./pxlinstaller --dump-logs\n\n";
@@ -140,31 +120,6 @@ int main(int argc, char *argv[]) {
         for (const PXLManager::PXLApplication& application : *applications) {
             std::cout << application.name << " (" << application.bundleIdentifier << ") @ " << application.version << std::endl;
         }
-    } else if (command == "--list-applications-json") {
-        auto applications = manager.GetInstalledApplications();
-        if (!applications.has_value()) {
-            std::cerr << "[-] Could not list installed applications!\n";
-            return EXIT_FAILURE;
-        }
-
-        std::cout << "[\n";
-        bool isFirst = true;
-
-        for (const PXLManager::PXLApplication& application : *applications) {
-            if (!isFirst) {
-                std::cout << ",\n";
-            }
-            isFirst = false;
-
-            std::cout << "\t{\n"
-                      << "\t\t\"RDPxlPackageName\": \"" << EscapeJSON(application.name) << "\",\n"
-                      << "\t\t\"RDPxlPackageVersion\": \"" << EscapeJSON(application.version) << "\",\n"
-                      << "\t\t\"RDPxlPackageDesc\": \"" << EscapeJSON(application.description) << "\",\n"
-                      << "\t\t\"CFBundleIdentifier\": \"" << EscapeJSON(application.bundleIdentifier) << "\"\n"
-                      << "\t}";
-        }
-
-        std::cout << "\n]\n";
     } else if (command == "--remove-application") {
         if (argc < 3 || std::string(argv[2]) == "--verbose") {
             std::cerr << "[-] Error: --remove-application requires the bundle identifier of the app you want to remove\n";
