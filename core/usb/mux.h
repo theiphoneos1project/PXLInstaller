@@ -4,7 +4,7 @@
 #include <libusb-1.0/libusb.h>
 #include <string.h>
 #include <stdint.h>
-#include "../platform.h"
+#include "platform.h"
 
 #define APPLE_VENDOR_ID 0x05ac
 #define MAX_PACKET_SIZE 512

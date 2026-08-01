@@ -45,4 +45,48 @@
     }
 #endif
 
+#ifdef _WIN32
+    static inline void GetExecutableDirectory(char *out, size_t size_out) {
+        char path[PATH_MAX];
+        GetModuleFileNameA(NULL, path, PATH_MAX);
+        
+        char *last_character = strrchr(path, '\\');
+        if (last_character) {
+            *last_character = '\0';
+        }
+
+        snprintf(out, size_out, "%s", path);
+    }
+#elif defined(__APPLE__)
+    #include <mach-o/dyld.h>
+
+    static inline void GetExecutableDirectory(char *out, size_t size_out) {
+        char path[PATH_MAX];
+        uint32_t size = sizeof(path);
+        if (_NSGetExecutablePath(path, &size) == 0) {
+            char *last_character = strrchr(path, '/');
+            if (last_character) {
+                *last_character = '\0';
+            }
+            
+            snprintf(out, size_out, "%s", path);
+        }
+    }
+#else
+    static inline void GetExecutableDirectory(char *out, size_t size_out) {
+        char path[PATH_MAX];
+        ssize_t count = readlink("/proc/self/exe", path, PATH_MAX);
+        if (count != -1) {
+            path[count] = '\0';
+
+            char *last_character = strrchr(path, '/');
+            if (last_character) {
+                *last_character = '\0';
+            }
+            
+            snprintf(out, size_out, "%s", path);
+        }
+    }
+#endif
+
 #endif // PLATFORM_H

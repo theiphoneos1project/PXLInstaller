@@ -5,6 +5,8 @@
 #include "afc/AppleFileConduitSession.hpp"
 #include "pxl/PXLManager.hpp"
 
+#include "platform.h"
+
 static std::string GetFilesDirectory(void) {
     char directory[PATH_MAX] = {0};
     GetExecutableDirectory(directory, sizeof(directory));
