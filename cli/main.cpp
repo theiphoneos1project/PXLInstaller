@@ -146,10 +146,19 @@ int main(int argc, char *argv[]) {
         }
         
         std::ifstream file(argv[2], std::ios::binary);
+        if (!file) {
+            std::cerr << "[-] Failed to open PXL file\n";
+            return EXIT_FAILURE;
+        }
+        
         std::vector<uint8_t> pxlData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        if (!file && !file.eof()) {
+            std::cerr << "[-] Failed to read PXL file\n";
+            return EXIT_FAILURE;
+        }
         
         if (pxlData.empty()) {
-            std::cerr << "[-] Failed to read .pxl file\n";
+            std::cerr << "[-] PXL file is empty.\n";
             return EXIT_FAILURE;
         }
 
