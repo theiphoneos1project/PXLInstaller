@@ -70,18 +70,31 @@ static int usb_pipe_write(usb_pipe_t *pipe, const uint8_t *data, int len) {
 }
 
 static int usb_pipe_read(usb_pipe_t *pipe, uint8_t *dst, int need) {
+    int timeout_count = 0;
+
     while (pipe->rx_len < need) {
         uint8_t tmp[MAX_TRANSFER_SIZE];
         int transferred = 0;
         int r = libusb_bulk_transfer(pipe->handle, pipe->ep_in, tmp, MAX_TRANSFER_SIZE, &transferred, USB_TIMEOUT_MS);
         if (r == LIBUSB_ERROR_TIMEOUT) {
-            continue;
-        }
+            timeout_count += 1;
+            
+            if (timeout_count > 3) {
+                libusb_clear_halt(pipe->handle, pipe->ep_in);
+                pipe->rx_len = 0;
+                fprintf(stderr, "[usb read] timed out waiting for device response\n");
+                return -1;
+            }
 
-        if (r < 0) {
+            continue;
+        } else if (r < 0) {
+            libusb_clear_halt(pipe->handle, pipe->ep_in);
+            pipe->rx_len = 0;
             fprintf(stderr, "[usb read] error: %s\n", libusb_strerror(r));
             return -1;
         }
+
+        timeout_count = 0;
 
         if (transferred > 0) {
             if (pipe->rx_len + transferred > (int)sizeof(pipe->rx_buf)) {
@@ -164,6 +177,10 @@ static int parse_frame(const uint8_t *buf, int buf_len, uint8_t *out_flags, uint
     }
 
     uint32_t total_len = r32be(buf + 4);
+    if (total_len == 0 || total_len == 1) {
+        return -1;
+    }
+
     if ((int)total_len > buf_len || total_len < 28) {
         return -1;
     }
