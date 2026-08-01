@@ -4,7 +4,7 @@
 #include <fstream>
 #include <unordered_map>
 
-PXLManager::PXLManager(AppleFileConduitSession& afcSession) : m_afcSession(afcSession), m_verboseLoggingEnabled(false) {}
+PXLManager::PXLManager(AppleFileConduitSession& afcSession) : m_afcSession(afcSession) {}
 
 std::optional<std::vector<PXLManager::PXLApplication>> PXLManager::GetInstalledApplications(void) const {
     if (!IsDaemonInstalled()) {
@@ -126,10 +126,20 @@ bool PXLManager::InstallDaemon(std::string_view filesDirectory) const {
         }
 
         std::ifstream file(localPath, std::ios::binary);
+        if (!file) {
+            std::cerr << "[-] Failed to open file " << localPath << "\n";
+            return false;
+        }
+
         std::vector<uint8_t> fileData((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         
-        if (fileData.empty()) {
+        if (!file && !file.eof()) {
             std::cerr << "[-] Failed to read file " << localPath << "\n";
+            return false;
+        }
+        
+        if (fileData.empty()) {
+            std::cerr << "[-] File is empty: " << localPath << "\n";
             return false;
         }
         
