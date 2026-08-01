@@ -132,8 +132,8 @@ int main(int argc, char *argv[]) {
             return EXIT_FAILURE;
         }
         
-        bool sucessfullyRemoved = manager.RemoveApplication(*application);
-        if (sucessfullyRemoved) {
+        bool successfullyRemoved = manager.RemoveApplication(*application);
+        if (successfullyRemoved) {
             std::cout << "[+] Successfully removed " << application->name << " (" << application->bundleIdentifier << ") @ " << application->version << " from the device! Your device will now respring.\n";
         } else {
             std::cout << "[-] Failed to remove application. Please check logs at " << PXLManager::PXLFolderPath << "/pxl.log\n";
