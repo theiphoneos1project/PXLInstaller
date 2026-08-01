@@ -257,17 +257,27 @@ std::optional<std::vector<uint8_t>> AppleFileConduitSession::Dispatch(OperationT
     }
 
     uint8_t responseBuffer[sizeof(afc_header_t) + 8192];
-    int received = session_recv(m_afcSession.get(), responseBuffer, sizeof(responseBuffer));
-    if (received < static_cast<int>(sizeof(afc_header_t))) {
-        std::cerr << "[AppleFileConduitSession] Short response: " << received << '\n';
-        return std::nullopt;
-    }
+    size_t bytesReceived = 0;
     
-    size_t bytesReceived = static_cast<size_t>(received);
+    while (bytesReceived < sizeof(afc_header_t)) {
+        int newBytes = session_recv(m_afcSession.get(), responseBuffer + bytesReceived, static_cast<int>(sizeof(responseBuffer) - bytesReceived));
+        
+        if (newBytes < 0) {
+            std::cerr << "[AppleFileConduitSession] Failed receiving header\n";
+            return std::nullopt;
+        }
+        
+        bytesReceived += static_cast<size_t>(newBytes);
+    }
     
     afc_header_t *responseHeader = reinterpret_cast<afc_header_t *>(responseBuffer);
     if (memcmp(responseHeader->magic, AFC_MAGIC, 8) != 0) {
         std::cerr << "[AppleFileConduitSession] Bad magic in response\n";
+        return std::nullopt;
+    }
+
+    if (responseHeader->entire_length < sizeof(afc_header_t)) {
+        std::cerr << "[AppleFileConduitSession] Impossibly short entire_length\n";
         return std::nullopt;
     }
     
