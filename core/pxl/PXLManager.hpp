@@ -19,8 +19,6 @@ public:
         std::string bundleIdentifier;
         std::string version;
         std::string description;
-
-        std::string ToJSON(void);
     };
 public:
     explicit PXLManager(AppleFileConduitSession& afcSession);
@@ -34,10 +32,10 @@ public:
     bool RemoveApplication(const PXLApplication& application) const;
     bool InstallApplication(const std::vector<uint8_t>& pxlData) const;
 
-    void SetVerboseLoggingEnabled(bool enabled) { m_verboseLoggingEnabled = enabled; };
+    void SetVerboseLoggingEnabled(bool enabled) { m_verboseLoggingEnabled = enabled; }
 private:
-    AppleFileConduitSession &m_afcSession;
-    bool m_verboseLoggingEnabled;
+    AppleFileConduitSession& m_afcSession;
+    bool m_verboseLoggingEnabled = false;
 };
 
 #endif // PXLMANAGER_H
