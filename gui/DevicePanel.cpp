@@ -77,7 +77,7 @@ void DevicePanel::RenderDevice(std::string_view productType, const std::vector<P
 
                 row->AddSpacer(5);
 
-                auto *removeButton = new wxButton(appList, ID_REMOVE_APPLICATION, "✕", wxDefaultPosition, wxSize(20, 15));
+                auto *removeButton = new wxButton(appList, ID_REMOVE_APPLICATION, "X", wxDefaultPosition, wxSize(18, 20), wxBU_EXACTFIT);
                 removeButton->Bind(wxEVT_BUTTON, [bundleIdentifier = application.bundleIdentifier](wxCommandEvent& event) {
                     event.SetString(bundleIdentifier);
                     event.Skip();
