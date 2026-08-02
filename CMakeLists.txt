@@ -97,7 +97,7 @@ find_package(wxWidgets COMPONENTS core base QUIET)
 if(wxWidgets_FOUND)
     include(${wxWidgets_USE_FILE})
 
-    add_executable(pxlinstaller-gui 
+    add_executable(pxlinstaller-gui WIN32
         gui/main.cpp
         gui/MainFrame.cpp
         gui/ControlPanel.cpp
