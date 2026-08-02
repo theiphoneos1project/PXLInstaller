@@ -64,12 +64,15 @@ ControlPanel::ControlPanel(wxWindow *parent) : wxPanel(parent) {
 
     m_daemonButton = new wxButton(this, ID_INSTALL_DAEMON, "Install Daemon");
     m_daemonButton->Hide();
+    m_daemonButton->MoveBeforeInTabOrder(title);
     buttonSizer->Add(m_daemonButton, 0, wxRIGHT, 8);
 
     m_installButton = new wxButton(this, ID_INSTALL_APPLICATION, "Install Application");
+    m_installButton->MoveBeforeInTabOrder(title);
     buttonSizer->Add(m_installButton, 0, wxRIGHT, 8);
 
     m_logsButton = new wxButton(this, ID_VIEW_LOGS, "View Device Logs");
+    m_logsButton->MoveBeforeInTabOrder(title);
     buttonSizer->Add(m_logsButton, 0);
 
     m_sizer->Add(buttonSizer, 0, wxEXPAND | wxALL, 20);
