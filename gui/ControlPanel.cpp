@@ -23,19 +23,19 @@ ControlPanel::ControlPanel(wxWindow *parent) : wxPanel(parent) {
     auto *subtitle = new wxStaticText(this, wxID_ANY, "By Nightwind");
     subtitle->SetFont(subtitleFont);
     m_sizer->Add(subtitle, 0, wxLEFT | wxRIGHT, 20);
-    m_sizer->AddStretchSpacer();
+    m_sizer->AddStretchSpacer(2);
     
     m_statusText = new wxStaticText(this, wxID_ANY, wxEmptyString);
     m_sizer->Add(m_statusText, 0, wxLEFT | wxRIGHT, 20);
     
-    m_sizer->AddStretchSpacer();
+    m_sizer->AddStretchSpacer(2);
     m_sizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL), 0, wxEXPAND | wxALL, 10);
-    m_sizer->AddStretchSpacer();
+    m_sizer->AddStretchSpacer(2);
     
     m_creditsText = new wxStaticText(this, wxID_ANY, "Special thanks to: EthanArbuckle, Nate True (iBrickr), PXL archive", wxDefaultPosition, wxDefaultSize);
     m_sizer->Add(m_creditsText, 0, wxLEFT, 20);
     
-    m_sizer->AddSpacer(12);
+    m_sizer->AddStretchSpacer(1);
     
     m_sizer->Add(new wxStaticText(this, wxID_ANY, "References:", wxDefaultPosition, wxDefaultSize), 0, wxLEFT, 20);
     
@@ -43,20 +43,20 @@ ControlPanel::ControlPanel(wxWindow *parent) : wxPanel(parent) {
     m_sizer->Add(MakeCustomHyperlink("EthanArbuckle/iOS1.0-Jailbreak", "https://github.com/EthanArbuckle/iOS1.0-Jailbreak"), 0, wxLEFT, 20);
     m_sizer->Add(MakeCustomHyperlink("archive/pxl", "https://code.google.com/archive/p/pxl/"), 0, wxLEFT, 20);
     
-    m_sizer->AddSpacer(12);
+    m_sizer->AddStretchSpacer(1);
     
     m_sizer->Add(new wxStaticText(this, wxID_ANY, "Find us at:", wxDefaultPosition, wxDefaultSize), 0, wxLEFT, 20);
     m_sizer->Add(MakeCustomHyperlink("NightwindDev GitHub", "https://github.com/NightwindDev"), 0, wxLEFT, 20);
     m_sizer->Add(MakeCustomHyperlink("The iPhone OS 1 Project GitHub", "https://github.com/theiphoneos1project"), 0, wxLEFT, 20);
     m_sizer->Add(MakeCustomHyperlink("@NightwindDev Twitter", "https://twitter.com/NightwindDev"), 0, wxLEFT, 20);
     
-    m_sizer->AddSpacer(12);
+    m_sizer->AddStretchSpacer(1);
     
     m_sizer->Add(new wxStaticText(this, wxID_ANY, "Device mockup credits:", wxDefaultPosition, wxDefaultSize), 0, wxLEFT, 20);
     m_sizer->Add(MakeCustomHyperlink("Rafael Fernandez (TheGoldenBox)", "https://commons.wikimedia.org/wiki/User:TheGoldenBox"), 0, wxLEFT, 20);
     m_sizer->Add(MakeCustomHyperlink("CC BY-SA 4.0 License", "https://creativecommons.org/licenses/by-sa/4.0/"), 0, wxLEFT, 20);
     
-    m_sizer->AddStretchSpacer();
+    m_sizer->AddStretchSpacer(2);
 
     m_sizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 10);
 
