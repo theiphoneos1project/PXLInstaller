@@ -126,12 +126,6 @@ if(wxWidgets_FOUND)
             ${CMAKE_SOURCE_DIR}/files
             $<TARGET_BUNDLE_CONTENT_DIR:pxlinstaller-gui>/Resources/files
         )
-    else()
-        add_custom_command(TARGET pxlinstaller-gui POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/files
-            $<TARGET_FILE_DIR:pxlinstaller-gui>/files
-        )
     endif()
 
     function(binary_to_header INPUT OUTPUT NAME)
