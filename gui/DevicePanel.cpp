@@ -30,14 +30,14 @@ void DevicePanel::RenderDevice(std::string_view productType, const std::vector<P
                 wxIMAGE_QUALITY_HIGH
             );
 
-            auto *imageContainer = new wxPanel(this, wxID_ANY);
+            auto *imageContainer = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxCLIP_CHILDREN);
             auto *bitmap = new wxStaticBitmap(imageContainer, wxID_ANY, wxBitmap(image));
             
             auto *containerSizer = new wxBoxSizer(wxVERTICAL);
             imageContainer->SetSizer(containerSizer);
             containerSizer->Add(bitmap, 1, wxALIGN_CENTER);
 
-            auto *overlay = new wxPanel(imageContainer, wxID_ANY);
+            auto *overlay = new wxPanel(bitmap, wxID_ANY);
             auto *overlaySizer = new wxBoxSizer(wxVERTICAL);
             overlay->SetSizer(overlaySizer);
 
@@ -98,6 +98,8 @@ void DevicePanel::RenderDevice(std::string_view productType, const std::vector<P
             auto initialRect = GetRectForProduct(productType, scaledHeight);
             if (initialRect.has_value()) {
                 overlay->SetSize(*initialRect);
+                overlay->Raise();
+                overlay->Layout();
             }
 
             m_sizer->AddStretchSpacer(1);
