@@ -37,7 +37,11 @@ void DevicePanel::RenderDevice(std::string_view productType, const std::vector<P
             imageContainer->SetSizer(containerSizer);
             containerSizer->Add(bitmap, 1, wxALIGN_CENTER);
 
+#if _WIN32
             auto *overlay = new wxPanel(bitmap, wxID_ANY);
+#else
+            auto *overlay = new wxPanel(imageContainer, wxID_ANY);
+#endif
             auto *overlaySizer = new wxBoxSizer(wxVERTICAL);
             overlay->SetSizer(overlaySizer);
 
