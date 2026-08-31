@@ -1,28 +1,7 @@
 #include "MainFrame.hpp"
+#include "USBGuards.hpp"
 #include <wx/snglinst.h>
 #include <memory>
-
-#ifdef __linux__
-struct USBGuard {
-public:
-    USBGuard() {
-        long result = wxExecute("systemctl mask --now usbmuxd", wxEXEC_SYNC);
-        if (result == 0) {
-            m_masked = true;
-        }
-    }
-
-    ~USBGuard() {
-        if (m_masked) {
-            wxExecute("systemctl unmask --now usbmuxd", wxEXEC_SYNC);
-        }
-    }
-
-    bool DidSuccessfullyMask(void) const { return m_masked; }
-private:
-    bool m_masked = false;
-};
-#endif
 
 class App : public wxApp {
 public:
@@ -47,6 +26,14 @@ public:
             );
         }
 #endif
+
+#ifdef _WIN32
+        m_usbMutexGuard = std::make_unique<USBMutexGuard>();
+        if (!m_usbMutexGuard->Acquire()) {
+            wxMessageBox("Another program is using the usbmux v0 protocol to communicate with an iPhone OS 1 device. Please quit the other program and retry.", "Error", wxICON_ERROR);
+            return false;
+        }
+#endif
         
         auto *frame = new MainFrame();
         frame->Show();
@@ -56,6 +43,8 @@ private:
     std::unique_ptr<wxSingleInstanceChecker> m_checker;
 #ifdef __linux__
     std::unique_ptr<USBGuard> m_usbmuxdGuard;
+#elif defined(_WIN32)
+    std::unique_ptr<USBMutexGuard> m_usbMutexGuard;
 #endif
 };
 
