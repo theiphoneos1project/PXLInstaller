@@ -34,6 +34,10 @@ public:
             return false;
         }
 #endif
+
+#ifdef _WIN32
+        wxMessageBox("On Windows, you may have to use a tool such as Zadig to rebind your driver for your connected device to libusbK. If you connect a different device, you will have to run the steps again.", "Information", wxICON_INFORMATION);
+#endif
         
         auto *frame = new MainFrame();
         frame->Show();
