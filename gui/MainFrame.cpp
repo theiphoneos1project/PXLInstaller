@@ -310,6 +310,12 @@ void MainFrame::RefreshDeviceUI(void) {
             m_controlPanel->SetStatus("Failed to read installed applications from device.", true);
             applications = std::vector<PXLManager::PXLApplication>();
         }
+
+        if (!m_pxlManager->IsDaemonInstalled()) {
+            m_controlPanel->SetStatus("The PXL daemon is not installed. Install it to be able to install applications.", true);
+            applications = std::vector<PXLManager::PXLApplication>();
+        }
+
         m_devicePanel->RenderDevice(*productType, *applications);
     } else {
         m_devicePanel->RenderTransientView();

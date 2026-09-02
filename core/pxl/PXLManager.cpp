@@ -12,6 +12,10 @@ std::optional<std::vector<PXLManager::PXLApplication>> PXLManager::GetInstalledA
         return std::nullopt;
     }
 
+    if (!m_afcSession.PathExists(PXLDatabasePath)) {
+        return std::vector<PXLApplication>();
+    }
+
     auto entries = m_afcSession.ContentsOfDirectory(PXLDatabasePath);
     if (!entries.has_value()) {
         return std::nullopt;
