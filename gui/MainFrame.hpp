@@ -49,7 +49,7 @@ private:
     DevicePanel *m_devicePanel = nullptr;
     
     static constexpr uint32_t s_minimumWindowWidth = 725; 
-    static constexpr uint32_t s_minimumWindowHeight = 475; 
+    static constexpr uint32_t s_minimumWindowHeight = 500; 
 };
 
 #endif // MAINFRAME_H
