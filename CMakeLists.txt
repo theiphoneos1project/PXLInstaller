@@ -136,6 +136,10 @@ if(wxWidgets_FOUND)
         )
     endif()
 
+    if(WIN32)
+        target_sources(pxlinstaller-gui PRIVATE ${CMAKE_SOURCE_DIR}/gui/pxlinstaller-gui.rc)
+    endif()
+
     function(binary_to_header INPUT OUTPUT NAME)
         file(READ "${INPUT}" data HEX)
         string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1, " data "${data}")
