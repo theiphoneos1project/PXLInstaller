@@ -121,6 +121,14 @@ if(wxWidgets_FOUND)
             MACOSX_BUNDLE_BUNDLE_NAME "PXLInstaller"
         )
 
+        target_sources(pxlinstaller-gui PRIVATE ${CMAKE_SOURCE_DIR}/icons/Icon.icns)
+        set_target_properties(pxlinstaller-gui PROPERTIES
+            MACOSX_BUNDLE_ICON_FILE Icon.icns
+        )
+        set_source_files_properties(${CMAKE_SOURCE_DIR}/icons/Icon.icns PROPERTIES
+            MACOSX_PACKAGE_LOCATION Resources
+        )
+
         add_custom_command(TARGET pxlinstaller-gui POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/files
