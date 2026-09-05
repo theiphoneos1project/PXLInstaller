@@ -77,4 +77,18 @@ cmake --build build\windows --target dist --clean-first
 ## Copyright
 This project is licensed under [MIT](LICENSE).
 
+### Media and Asset Licenses
+The project icon and associated visual assets are licensed under [CC BY-NC-SA 3.0](https://creativecommons.org). 
+
+The icon incorporates elements from the following third-party works:
+* "iPhone First Generation 8GB" by Carl Berkeley, used under [CC BY-SA 2.0](https://creativecommons.org) / Isolated and cropped from original source at [Wikimedia Commons](https://wikimedia.org).
+* "High Quality Tileable Light Wood Texture 1" by Webtreats, used under [CC BY 2.0](https://creativecommons.org) / Blended and sourced from [Flickr](https://www.flickr.com/photos/webtreatsetc/4727355663).
+* "Ripple water liquid" via [Picryl / Public Domain Media Repository](https://picryl.com/media/ripple-water-liquid-bf8262) (Dedicated to the Public Domain).
+* "3d red arrow download icon" via [Vecteezy](https://www.vecteezy.com/png/52854442-3d-red-arrow-download-icon-perfect-for-websites-and-applications) (Free Commercial/Personal License with Attribution).
+
+The device mockups are licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). 
+
+The device mockups come from:
+* [Rafael Fernandez (TheGoldenBox)](https://commons.wikimedia.org/wiki/User:TheGoldenBox), used under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+    
 ###### Copyright (c) 2026 Nightwind
