@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2026 Nightwind
+#
+
 import pathlib
 import urllib.request
 import zipfile

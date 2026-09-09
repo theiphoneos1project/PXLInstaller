@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2026 Nightwind
+//
+
 #include "PXLManager.hpp"
 #include <plist/plist++.h>
 #include <iostream>

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2026 Nightwind
+//
+
 #ifndef CONTROLPANEL_H
 #define CONTROLPANEL_H
 

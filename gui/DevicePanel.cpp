@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2026 Nightwind
+//
+
 #include "DevicePanel.hpp"
 #include "Events.hpp"
 

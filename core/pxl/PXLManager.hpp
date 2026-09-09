@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2026 Nightwind
+//
+
 #ifndef PXLMANAGER_H
 #define PXLMANAGER_H
 

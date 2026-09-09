@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2026 Nightwind
+//
+
 #ifndef APPLEFILECONDUITSESSION_H
 #define APPLEFILECONDUITSESSION_H
 

@@ -1,3 +1,7 @@
+//
+// Copyright (c) 2026 Nightwind
+//
+
 #ifndef DEVICEPANEL_H
 #define DEVICEPANEL_H
 
