@@ -13,6 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: brew install autoconf autoconf-archive automake libtool
+
       - name: Install vcpkg
         run: |
           git clone https://github.com/microsoft/vcpkg.git $HOME/vcpkg
@@ -30,7 +33,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake -B build -DCMAKE_OSX_ARCHITECTURES=arm64 -DVCPKG_TARGET_TRIPLET=arm64-osx -DVCPKG_OVERLAY_TRIPLETS=triplets -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+          cmake -B build -G "Unix Makefiles" -DCMAKE_OSX_ARCHITECTURES=arm64 -DVCPKG_TARGET_TRIPLET=arm64-osx -DVCPKG_OVERLAY_TRIPLETS=triplets -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
           cmake --build build --target dist --clean-first
 
       - uses: actions/upload-artifact@v4
@@ -51,6 +54,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: brew install autoconf autoconf-archive automake libtool
+
       - name: Install vcpkg
         run: |
           git clone https://github.com/microsoft/vcpkg.git $HOME/vcpkg
@@ -68,7 +74,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake -B build -DCMAKE_OSX_ARCHITECTURES=x86_64 -DVCPKG_TARGET_TRIPLET=x64-osx -DVCPKG_OVERLAY_TRIPLETS=triplets -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
+          cmake -B build -G "Unix Makefiles" -DCMAKE_OSX_ARCHITECTURES=x86_64 -DVCPKG_TARGET_TRIPLET=x64-osx -DVCPKG_OVERLAY_TRIPLETS=triplets -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
           cmake --build build --target dist --clean-first
 
       - uses: actions/upload-artifact@v4
@@ -90,7 +96,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install system dependencies
-        run: sudo apt-get install -y libwxgtk3.2-dev libusb-1.0-0-dev
+        run: sudo apt-get install -y libwxgtk3.2-dev libusb-1.0-0-dev autoconf autoconf-archive automake libtool
 
       - name: Install vcpkg
         run: |
@@ -109,7 +115,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake -B build -DVCPKG_TARGET_TRIPLET=x64-linux -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake -DwxWidgets_CONFIG_EXECUTABLE=$(which wx-config)
+          cmake -B build -G "Unix Makefiles" -DVCPKG_TARGET_TRIPLET=x64-linux -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake -DwxWidgets_CONFIG_EXECUTABLE=$(which wx-config)
           cmake --build build --target dist --clean-first
 
       - uses: actions/upload-artifact@v4
@@ -134,9 +140,9 @@ jobs:
 
       - name: Install vcpkg
         run: |
-          git clone https://github.com/microsoft/vcpkg.git $env:USERPROFILE\vcpkg
-          $env:USERPROFILE\vcpkg\bootstrap-vcpkg.bat
-          echo "VCPKG_ROOT=$env:USERPROFILE\vcpkg" >> $env:GITHUB_ENV
+          git clone https://github.com/microsoft/vcpkg.git "$env:USERPROFILE/vcpkg"
+          "$env:USERPROFILE/vcpkg/bootstrap-vcpkg.bat"
+          echo "VCPKG_ROOT=$env:USERPROFILE/vcpkg" >> $env:GITHUB_ENV
 
       - name: Cache vcpkg
         uses: actions/cache@v4
