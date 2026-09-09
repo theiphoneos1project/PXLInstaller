@@ -133,8 +133,6 @@ jobs:
     runs-on: windows-2022
     permissions:
       contents: write
-    env:
-      VCPKG_ROOT: C:\vcpkg
     steps:
       - uses: actions/checkout@v4
 
@@ -145,13 +143,14 @@ jobs:
 
       - name: Install vcpkg
         run: |
-          git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
-          "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"
+          git clone https://github.com/microsoft/vcpkg.git C:\tools\vcpkg
+          C:\tools\vcpkg\bootstrap-vcpkg.bat
+          echo "VCPKG_ROOT=C:\tools\vcpkg" >> $env:GITHUB_ENV
 
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
-          path: ${{ env.VCPKG_ROOT }}\installed
+          path: C:\tools\vcpkg\installed
           key: vcpkg-windows-x64-${{ hashFiles('vcpkg.json') }}
 
       - name: Fetch dependencies
@@ -159,16 +158,16 @@ jobs:
 
       - name: Build
         run: |
-          cmake -B build -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_OVERLAY_TRIPLETS=triplets "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake -B build -G "Visual Studio 17 2022" -A x64 -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_OVERLAY_TRIPLETS=triplets "-DCMAKE_TOOLCHAIN_FILE=C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
           cmake --build build --target dist --config Release --clean-first
+
+      - name: Zip
+        run: Rename-Item dist PXLInstaller_Windows_x64; Compress-Archive PXLInstaller_Windows_x64 PXLInstaller_Windows_x64.zip
 
       - uses: actions/upload-artifact@v4
         with:
           name: pxlinstaller-windows-x64
-          path: dist/
-
-      - name: Zip
-        run: Rename-Item dist PXLInstaller_Windows_x64; Compress-Archive PXLInstaller_Windows_x64 PXLInstaller_Windows_x64.zip
+          path: PXLInstaller_Windows_x64.zip
 
       - name: Upload to release
         if: github.event_name == 'release'
