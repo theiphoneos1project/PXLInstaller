@@ -133,16 +133,20 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write
+    env:
+      VCPKG_ROOT: C:\vcpkg
     steps:
       - uses: actions/checkout@v4
 
       - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+          vsversion: '2022'
 
       - name: Install vcpkg
         run: |
-          git clone https://github.com/microsoft/vcpkg.git "$env:USERPROFILE/vcpkg"
-          "$env:USERPROFILE/vcpkg/bootstrap-vcpkg.bat"
-          echo "VCPKG_ROOT=$env:USERPROFILE/vcpkg" >> $env:GITHUB_ENV
+          git clone https://github.com/microsoft/vcpkg.git $env:VCPKG_ROOT
+          "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"
 
       - name: Cache vcpkg
         uses: actions/cache@v4
@@ -163,8 +167,11 @@ jobs:
           name: pxlinstaller-windows-x64
           path: dist/
 
+      - name: Zip
+        run: Rename-Item dist PXLInstaller_Windows_x64; Compress-Archive PXLInstaller_Windows_x64 PXLInstaller_Windows_x64.zip
+
       - name: Upload to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: PXLInstaller_Windows_x64.zip
