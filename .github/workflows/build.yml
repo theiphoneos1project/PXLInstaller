@@ -36,16 +36,19 @@ jobs:
           cmake -B build -G "Unix Makefiles" -DCMAKE_OSX_ARCHITECTURES=arm64 -DVCPKG_TARGET_TRIPLET=arm64-osx -DVCPKG_OVERLAY_TRIPLETS=triplets -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
           cmake --build build --target dist --clean-first
 
+      - name: Zip
+        run: mv dist PXLInstaller_macOS_arm64 && zip -r PXLInstaller_macOS_arm64.zip PXLInstaller_macOS_arm64
+
       - uses: actions/upload-artifact@v4
         with:
           name: pxlinstaller-macos-arm64
-          path: dist/
+          path: PXLInstaller_macOS_arm64.zip
 
       - name: Upload to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: PXLInstaller_macOS_arm64.zip
 
   macos-x64:
     runs-on: macos-15
@@ -77,16 +80,19 @@ jobs:
           cmake -B build -G "Unix Makefiles" -DCMAKE_OSX_ARCHITECTURES=x86_64 -DVCPKG_TARGET_TRIPLET=x64-osx -DVCPKG_OVERLAY_TRIPLETS=triplets -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake
           cmake --build build --target dist --clean-first
 
+      - name: Zip
+        run: mv dist PXLInstaller_macOS_x64 && zip -r PXLInstaller_macOS_x64.zip PXLInstaller_macOS_x64
+
       - uses: actions/upload-artifact@v4
         with:
           name: pxlinstaller-macos-x64
-          path: dist/
+          path: PXLInstaller_macOS_x64.zip
 
       - name: Upload to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: PXLInstaller_macOS_x64.zip
 
   linux:
     runs-on: ubuntu-latest
@@ -118,16 +124,19 @@ jobs:
           cmake -B build -G "Unix Makefiles" -DVCPKG_TARGET_TRIPLET=x64-linux -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake -DwxWidgets_CONFIG_EXECUTABLE=$(which wx-config)
           cmake --build build --target dist --clean-first
 
+      - name: Zip
+        run: mv dist PXLInstaller_Linux_x64 && zip -r PXLInstaller_Linux_x64.zip PXLInstaller_Linux_x64
+
       - uses: actions/upload-artifact@v4
         with:
           name: pxlinstaller-linux-x64
-          path: dist/
+          path: PXLInstaller_Linux_x64.zip
 
       - name: Upload to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: PXLInstaller_Linux_x64.zip
 
   windows:
     runs-on: windows-2022
